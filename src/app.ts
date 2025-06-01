@@ -9,9 +9,8 @@ const app = express();
 app.use(express.json());
 app.use('/employees', employeeRoutes);
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-});
+app.listen(port, '0.0.0.0', () => console.log('Server running'));
+
 
 
 export default app;
