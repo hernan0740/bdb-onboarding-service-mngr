@@ -1,5 +1,12 @@
 import { Request, Response } from 'express';
-import {getAllEmployees, createEmployee, createUser, requestAccess, assignEquipment} from '../services/employeeService';
+import {
+    getAllEmployees,
+    createEmployee,
+    createUser,
+    requestAccess,
+    assignEquipment,
+    getAccessRequests, getComputerAssignments
+} from '../services/employeeService';
 
 export const getEmployees = (req: Request, res: Response) => {
     res.json(getAllEmployees());
@@ -34,3 +41,22 @@ export const equipmentAssignHandler = async (req: Request, res: Response) => {
         res.status(500).send('Error al asignar equipo');
     }
 };
+
+export const AccessRequestsGetHandler = async (req: Request, res: Response) => {
+    try {
+        await getAccessRequests();
+        res.status(201).send('Equipo asignado');
+    } catch {
+        res.status(500).send('Error al asignar equipo');
+    }
+};
+export const equipmentAssignGetHandler = async (req: Request, res: Response) => {
+    try {
+        const { documento_identidad } = req.params;
+        await getComputerAssignments(documento_identidad);
+        res.status(201).send('Accesos asignado');
+    } catch {
+        res.status(500).send('Error al asignar equipo');
+    }
+};
+

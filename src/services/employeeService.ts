@@ -32,10 +32,10 @@ export const createUser = async (req: IUser): Promise<void> => {
       VALUES ($1, 'pendiente')
     `, [documento_identidad]);
 
-        console.log(`✅ Usuario creado: ${documento_identidad} - estado pendiente`);
+        console.log(`Usuario creado: ${documento_identidad} - estado pendiente`);
     } catch (error) {
-        console.error('❌ Error en createUser:', error);
-        throw error; // Re-lanza el error para que lo capture el controlador
+        console.error('Error en createUser:', error);
+        throw error;
     }
 };
 
@@ -53,9 +53,9 @@ export const requestAccess = async ({
       VALUES ($1, 'pendiente', $2)
     `, [documento_identidad, JSON.stringify(permisos)]);
 
-        console.log(`✅ Solicitud de acceso para ${documento_identidad} registrada`);
+        console.log(`Solicitud de acceso para ${documento_identidad} registrada`);
     } catch (error) {
-        console.error('❌ Error en requestAccess:', error);
+        console.error('Error en requestAccess:', error);
         throw error;
     }
 };
@@ -79,10 +79,23 @@ export const assignEquipment = async ({
       VALUES ($1, $2, $3, 'entregado', $4)
     `, [documento_identidad, equipo, serie, fecha_entrega]);
 
-        console.log(`✅ Equipo asignado a ${documento_identidad}`);
+        console.log(`Equipo asignado a ${documento_identidad}`);
     } catch (error) {
-        console.error('❌ Error en assignEquipment:', error);
+        console.error('Error en assignEquipment:', error);
         throw error;
     }
 };
 
+export const getAccessRequests = async () => {
+    const result = await pool.query(`
+    SELECT * FROM gestion_accesos
+  `);
+    console.log("accesos res -->",result);
+    return result.rows;
+};
+
+export const getComputerAssignments = async (documento_identidad: string) => {
+    const result = await pool.query(`SELECT * FROM gestion_equipos WHERE usuario_id = $1`, [documento_identidad]);
+    console.log("equipos res -->",result.rows);
+    return result.rows;
+};

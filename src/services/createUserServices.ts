@@ -5,19 +5,16 @@ app.post('/usuarios', async (req, res) => {
     const { documento_identidad, nombre, correo, area, rol } = req.body;
 
     try {
-        // Insertar usuario
         await pool.query(`
       INSERT INTO usuarios (documento_identidad, nombre, correo, area, rol)
       VALUES ($1, $2, $3, $4, $5)
     `, [documento_identidad, nombre, correo, area, rol]);
 
-        // Registrar solicitud pendiente en gestion_usuarios
         await pool.query(`
       INSERT INTO gestion_usuarios (usuario_id, estado)
       VALUES ($1, 'pendiente')
     `, [documento_identidad]);
 
-        // Simulación de envío a TI (podría ser un log)
         console.log(`Nueva solicitud de usuario: ${documento_identidad} - pendiente`);
 
         res.status(201).json({ message: 'Usuario creado y solicitud enviada a TI' });
@@ -28,10 +25,8 @@ app.post('/usuarios', async (req, res) => {
 });
 
 
-
-// POST /accesos/solicitar
 app.post('/accesos/solicitar', async (req, res) => {
-    const { usuario_id, permisos } = req.body; // permisos es un objeto JSON
+    const { usuario_id, permisos } = req.body;
 
     try {
         await pool.query(`
@@ -47,7 +42,6 @@ app.post('/accesos/solicitar', async (req, res) => {
 });
 
 
-// POST /equipos/asignar
 app.post('/equipos/asignar', async (req, res) => {
     const { usuario_id, equipo, serie } = req.body;
 
