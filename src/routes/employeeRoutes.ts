@@ -1,9 +1,17 @@
 import { Router } from 'express';
-import { getEmployees, addEmployee } from '../controllers/employeeController';
+import {
+    getEmployees,
+    addEmployee,
+    accessRequestHandler,
+    equipmentAssignHandler
+} from '../controllers/employeeController';
+import {createUser} from "../services/employeeService";
 
 const router = Router();
 
 router.get('/', getEmployees);
-router.post('/', addEmployee);
+router.post('/usuarios', addEmployee);
+router.post('/accesos', accessRequestHandler);
+router.post('/equipos', equipmentAssignHandler);
 
 export default router;

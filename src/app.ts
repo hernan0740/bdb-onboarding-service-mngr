@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
-app.use('/employees', employeeRoutes);
+app.use('/', employeeRoutes);
 
 app.listen(port, '0.0.0.0', () => console.log('Server running'));
 
