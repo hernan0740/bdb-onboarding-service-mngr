@@ -26,6 +26,6 @@ app.use(fullpath, AccessRequestController);
 
 app.use(fullpath, AuthController);
 
-app.listen(port, "0.0.0.0", () => console.log("Server running"));
+app.listen(port, "0.0.0.0", () => console.log("Server running --->"));
 
 export default app;
