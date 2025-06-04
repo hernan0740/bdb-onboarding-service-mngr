@@ -1,9 +1,5 @@
 import { Router } from "express";
 import {
-  createDeviceRequest,
-  getDeviceRequest,
-} from "../services/equipmentService";
-import {
   createAccessRequest,
   getAccessRequest,
 } from "../services/accesService";
@@ -32,10 +28,12 @@ AccessRequestController.post("/access/requests", async (req, res) => {
   try {
     console.log("llego a inicio de solicitud equipo ");
     const accessCreateRes = await createAccessRequest(req.body);
-    res.status(201).json({ message: accessCreateRes });
+    res
+      .status(accessCreateRes.status)
+      .json({ message: accessCreateRes.message });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al asignar equipo" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

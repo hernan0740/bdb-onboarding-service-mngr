@@ -1,6 +1,7 @@
 import { dataBase } from "./dataBase";
+import { mappedUserRequested } from "./utilsServices";
 
-interface IUser {
+export interface IUser {
   documento_identidad: string;
   nombre: string;
   correo: string;
@@ -14,6 +15,16 @@ export const getUser = async (documento_identidad: string) => {
       `SELECT * FROM usuarios WHERE documento_identidad = $1`,
       [documento_identidad],
     );
+    console.log("equipos res -->", result.rows);
+    return result.rows;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getUserAll = async () => {
+  try {
+    const result = await dataBase.query(`SELECT * FROM usuarios`);
     console.log("equipos res -->", result.rows);
     return result.rows;
   } catch (error) {
@@ -40,67 +51,103 @@ export const createUser = async (req: IUser) => {
     `,
       [documento_identidad],
     );
-    return `Solicitud creada: ${documento_identidad} - estado pendiente`;
+    return {
+      status: 200,
+      message: `Solicitud creada: ${documento_identidad} - estado pendiente`,
+    };
   } catch (error) {
     console.error("Error en createUser:", error);
     throw error;
   }
 };
 
-/*app.post('/usuarios', async (req, res) => {
-    const { documento_identidad, nombre, correo, area, rol } = req.body;
+export const getUserWithSolicitudes = async (documento_identidad: string) => {
+  try {
+    const query = `
+      SELECT 
+        u.documento_identidad,
+        u.nombre,
 
-    try {
-        await dataBase.query(`
-      INSERT INTO usuarios (documento_identidad, nombre, correo, area, rol)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [documento_identidad, nombre, correo, area, rol]);
+        -- Solo el estado de cada solicitud en gestión_usuarios
+        (
+          SELECT json_agg(json_build_object('estado', gu.estado))
+          FROM gestion_usuarios gu
+          WHERE gu.usuario_id = u.documento_identidad
+        ) AS solicitudes_gestion_usuarios,
 
-        await dataBase.query(`
-      INSERT INTO gestion_usuarios (usuario_id, estado)
-      VALUES ($1, 'pendiente')
-    `, [documento_identidad]);
+        -- Solo el estado de cada solicitud en gestión_accesos
+        (
+          SELECT json_agg(json_build_object('estado', ga.estado))
+          FROM gestion_accesos ga
+          WHERE ga.usuario_id = u.documento_identidad
+        ) AS solicitudes_gestion_accesos,
 
-        console.log(`Nueva solicitud de usuario: ${documento_identidad} - pendiente`);
+        -- Solo el estado de cada solicitud en gestión_equipos
+        (
+          SELECT json_agg(json_build_object('estado', ge.estado))
+          FROM gestion_equipos ge
+          WHERE ge.usuario_id = u.documento_identidad
+        ) AS solicitudes_gestion_equipos
 
-        res.status(201).json({ message: 'Usuario creado y solicitud enviada a TI' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al crear usuario' });
-    }
-});
+      FROM usuarios u
+      WHERE u.documento_identidad = $1;
+    `;
 
+    const result = await dataBase.query(query, [documento_identidad]);
 
+    console.log("Usuario con estados de solicitudes -->", result.rows[0]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(
+      "Error al obtener el usuario con estados de solicitudes:",
+      error,
+    );
+    throw error;
+  }
+};
 
-app.post('/accesos/solicitar', async (req, res) => {
-    const { usuario_id, permisos } = req.body;
+export const getAllUsersWithEstados = async () => {
+  try {
+    const query = `
+      SELECT 
+        u.documento_identidad,
+        u.nombre,
 
-    try {
-        await dataBase.query(`
-      INSERT INTO gestion_accesos (usuario_id, estado, permisos)
-      VALUES ($1, 'pendiente', $2)
-    `, [usuario_id, JSON.stringify(permisos)]);
+        -- Estado de gestión_usuarios
+        (
+          SELECT json_build_object('estado', gu.estado)
+          FROM gestion_usuarios gu
+          WHERE gu.usuario_id = u.documento_identidad
+          LIMIT 1
+        ) AS estados_gestion_usuarios,
 
-        res.status(201).json({ message: 'Solicitud de acceso registrada' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al solicitar acceso' });
-    }
-});
+        -- Estado de gestión_accesos
+        (
+          SELECT json_build_object('estado', ga.estado)
+          FROM gestion_accesos ga
+          WHERE ga.usuario_id = u.documento_identidad
+          LIMIT 1
+        ) AS estados_gestion_accesos,
 
+        -- Estado de gestión_equipos
+        (
+          SELECT json_build_object('estado', ge.estado)
+          FROM gestion_equipos ge
+          WHERE ge.usuario_id = u.documento_identidad
+          LIMIT 1
+        ) AS estados_gestion_equipos
 
-app.post('/equipos/asignar', async (req, res) => {
-    const { usuario_id, equipo, serie } = req.body;
+      FROM usuarios u;
+    `;
 
-    try {
-        await dataBase.query(`
-      INSERT INTO gestion_equipos (usuario_id, equipo, serie, estado, fecha_entrega)
-      VALUES ($1, $2, $3, 'entregado', CURRENT_DATE)
-    `, [usuario_id, equipo, serie]);
+    const result = await dataBase.query(query);
 
-        res.status(201).json({ message: 'Equipo asignado correctamente' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al asignar equipo' });
-    }
-});*/
+    const mappedResult = mappedUserRequested(result);
+
+    console.log("Usuarios mapeados:", mappedResult);
+    return mappedResult;
+  } catch (error) {
+    console.error("Error al obtener y mapear los usuarios con estados:", error);
+    throw error;
+  }
+};

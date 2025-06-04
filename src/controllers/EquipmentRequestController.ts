@@ -1,8 +1,11 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import {
   createDeviceRequest,
   getDeviceRequest,
+  getDevicesRequestAll,
 } from "../services/equipmentService";
+import { getUserAll } from "../services/userService";
+import UserRequestController from "./UserRequestController";
 
 const EquipmentRequestController = Router();
 
@@ -34,5 +37,19 @@ EquipmentRequestController.get(
     }
   },
 );
+
+EquipmentRequestController.get("/devices/requests", async (req, res) => {
+  try {
+    console.log("llego a consulta de usuarios ");
+    const userGetRes = await getDevicesRequestAll();
+
+    if (!userGetRes || userGetRes.length === 0) {
+      res.status(404).send({ error: "Request not found" });
+    }
+    res.status(200).send(userGetRes);
+  } catch (error) {
+    res.status(500).send({ error: "Internal server error" });
+  }
+});
 
 export default EquipmentRequestController;

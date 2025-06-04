@@ -1,4 +1,5 @@
 import { dataBase } from "./dataBase";
+import { mappedDevice } from "./utilsServices";
 
 interface IDevice {
   documento_identidad: string;
@@ -12,7 +13,8 @@ export const getDeviceRequest = async (documento_identidad: string) => {
       [documento_identidad],
     );
     console.log("equipos res -->", result.rows);
-    return result.rows;
+    const filterDeviceRes = mappedDevice(result.rows);
+    return filterDeviceRes;
   } catch (error) {
     console.error(error);
   }
@@ -34,5 +36,16 @@ export const createDeviceRequest = async (req: IDevice) => {
   } catch (error) {
     console.error("Error en createUser:", error);
     throw error;
+  }
+};
+
+export const getDevicesRequestAll = async () => {
+  try {
+    const result = await dataBase.query(`SELECT * FROM gestion_equipos`);
+    console.log("equipos res -->", result.rows);
+    const filterDeviceRes = mappedDevice(result.rows);
+    return filterDeviceRes;
+  } catch (error) {
+    console.error(error);
   }
 };
