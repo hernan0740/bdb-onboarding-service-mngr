@@ -15,7 +15,7 @@ app.use((req, res, next) => {
 });
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://frontend-kata-hchapid.s3-website-us-east-1.amazonaws.com"],
+    origin:'*',
     credentials: true,
   }),
 );
